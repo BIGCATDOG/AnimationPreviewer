@@ -16,19 +16,19 @@ AnimationFrame::AnimationFrame(QWidget *parent)
 
 void AnimationFrame::playAnimation()
 {
-    if (_pathType == Line && points.size() > 1) {
+    if (_pathType == Line && _points.size() > 1) {
         auto btn = new QPushButton(this);
         btn->show();
         QPropertyAnimation *animation = new QPropertyAnimation(btn, "pos");
         animation->setDuration(_duration * 1000);
-        animation->setStartValue(points[0]);
-        animation->setEndValue(points[1]);
+        animation->setStartValue(_points[0]);
+        animation->setEndValue(_points[1]);
         animation->setEasingCurve(_easingType);
         animation->start();
         connect(animation,&QPropertyAnimation::finished,[=](){
             btn->deleteLater();
         });
-    } else if(_pathType == Bezier && points.size() > 3) {
+    } else if(_pathType == Bezier && _points.size() > 3) {
         auto btn = new QPushButton(this);
         auto btnSize = btn->size();
         auto center = btn->pos() - QPoint(btnSize.width()/2,btnSize.height()/2);
@@ -39,10 +39,10 @@ void AnimationFrame::playAnimation()
         connect(timeLine,&QTimeLine::valueChanged,[=](qreal value){
             qDebug()<<value;
             float currentTime = value;
-            QPoint p0 = points[0];
-            QPoint p1 = points[1];
-            QPoint p2 = points[2];
-            QPoint p3 = points[3];
+            QPoint p0 = _points[0];
+            QPoint p1 = _points[1];
+            QPoint p2 = _points[2];
+            QPoint p3 = _points[3];
 
             QPoint position = p0 * pow(1 - currentTime, 3) +
                     3 * p1 * currentTime * pow(1 - currentTime, 2) +
@@ -76,9 +76,9 @@ void AnimationFrame::playAnimation()
     }
 }
 
-void AnimationFrame::onDurationChanged(float duration)
+void AnimationFrame::onDurationChanged(double duration)
 {
-
+    _duration = duration;
 }
 
 void AnimationFrame::onEasingChanged(QEasingCurve::Type type)
@@ -89,18 +89,24 @@ void AnimationFrame::onEasingChanged(QEasingCurve::Type type)
 void AnimationFrame::onPathTypeChanged(PathType pathType)
 {
     _pathType = pathType;
-    points.clear();
+    _points.clear();
+    update();
+}
+
+void AnimationFrame::onResetPath()
+{
+    _points.clear();
     update();
 }
 
 void AnimationFrame::mousePressEvent(QMouseEvent *event)
 {
-    if(_pathType==Line && points.size() >1) {
+    if(_pathType==Line && _points.size() >1) {
         return;
-    } else if(_pathType ==Bezier && points.size() >3) {
+    } else if(_pathType ==Bezier && _points.size() >3) {
         return;
     }
-    points.push_back(event->pos());
+    _points.push_back(event->pos());
 }
 
 void AnimationFrame::mouseReleaseEvent(QMouseEvent *event)
@@ -120,24 +126,24 @@ void AnimationFrame::paintEvent(QPaintEvent *event)
     pen.setWidth(3);
     painter.setPen(pen);
     painter.drawImage(QPoint(0, 0), image);
-    if( points.size() < 1) {
+    if( _points.size() < 1) {
         return;
     }
-    if (_pathType == Line && points.size() ==2) {
-        painter.drawLine(points[0],points[1]);
-        painter.drawEllipse(points[1],5 , 5);
-        painter.drawEllipse(points[0],5 , 5);
-    } else if (_pathType == Bezier && points.size()==4) {
+    if (_pathType == Line && _points.size() ==2) {
+        painter.drawLine(_points[0],_points[1]);
+        painter.drawEllipse(_points[1],5 , 5);
+        painter.drawEllipse(_points[0],5 , 5);
+    } else if (_pathType == Bezier && _points.size()==4) {
         QPainterPath path;
-        path.moveTo(points[0]);
-        path.cubicTo(points[1],points[2],points[3]);
-        path.addEllipse(points[0],5,5);
-        path.addEllipse(points[1],5,5);
-        path.addEllipse(points[2],5,5);
-        path.addEllipse(points[3],5,5);
+        path.moveTo(_points[0]);
+        path.cubicTo(_points[1],_points[2],_points[3]);
+        path.addEllipse(_points[0],5,5);
+        path.addEllipse(_points[1],5,5);
+        path.addEllipse(_points[2],5,5);
+        path.addEllipse(_points[3],5,5);
         painter.drawPath(path);
     } else {
-        for(auto point : points){
+        for(auto point : _points){
             painter.drawEllipse(point,5,5);
         }
     }

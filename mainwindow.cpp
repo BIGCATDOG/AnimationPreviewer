@@ -48,3 +48,15 @@ void MainWindow::on_comboBox_easaingType_currentIndexChanged(int index)
     ui->frame->onEasingChanged((QEasingCurve::Type)index);
 }
 
+
+void MainWindow::on_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->frame->onDurationChanged(arg1);
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    ui->frame->onResetPath();
+}
+

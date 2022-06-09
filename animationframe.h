@@ -34,18 +34,19 @@ public:
     AnimationFrame(QWidget* parent);
 public slots:
     void playAnimation();
-    void onDurationChanged(float duration);
+    void onDurationChanged(double duration);
     void onEasingChanged(QEasingCurve::Type type);
     void onPathTypeChanged(AnimationFrame::PathType pathType);
+    void onResetPath();
 protected:
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void paintEvent(QPaintEvent *event);
 private:
-    float _duration = 1.0;
+    double _duration = 1.0;
     PathType _pathType = PathType::Line;
     QEasingCurve::Type  _easingType = QEasingCurve::InOutCirc;
-    QVector<QPoint> points;
+    QVector<QPoint> _points;
 };
 
 #endif // ANIMATIONFRAME_H
