@@ -8,10 +8,12 @@
 #include <QPropertyAnimation>
 #include <QPushButton>
 #include <QTimeLine>
+namespace  {
+const int kPickedTolerance = 8;
+}
 AnimationFrame::AnimationFrame(QWidget *parent)
     :QFrame(parent)
 {
-
 }
 
 void AnimationFrame::playAnimation()
@@ -50,24 +52,6 @@ void AnimationFrame::playAnimation()
                     p3 * pow(currentTime, 3);
             auto s = QPoint(btnSize.width()/2,btnSize.height()/2);
             btn->move(position);
-            //                // dy/dt
-            //                float y = -3 * p0.y * pow(1 - currentTime,2) +
-            //                          3 * p1.y *(1 - currentTime) *(1 - 3 * currentTime) +
-            //                          3* p2.y * currentTime * (2 - 3 *currentTime) +
-            //                          3 * p3.y * pow(currentTime ,2);
-            //                float x = -3 * p0.x * pow(1 - currentTime, 2) +
-            //                    3 * p1.x * (1 - currentTime) * (1 - 3 * currentTime) +
-            //                    3 * p2.x * currentTime * (2 - 3 * currentTime) +
-            //                    3 * p3.x * pow(currentTime, 2);;
-            //                float res = y / x;
-            //                float angle = MATH_RAD_TO_DEG(std::atan(res));
-            //                node->drawLine(Vec2(0, 0), Vec2(20,0), Color4F::RED);
-            //                auto label = Label::createWithSystemFont(std::to_string(angle), "Arial", 10);
-            //                _target->getParent()->addChild(label);
-            //                label->setPosition(position);
-            //                node->setPosition(position);
-            //                p->setPosition(position);
-            //                node->setRotation(-angle);
         });
         connect(timeLine,&QTimeLine::finished,[=](){
             btn->deleteLater();
@@ -101,16 +85,36 @@ void AnimationFrame::onResetPath()
 
 void AnimationFrame::mousePressEvent(QMouseEvent *event)
 {
-    if(_pathType==Line && _points.size() >1) {
-        return;
-    } else if(_pathType ==Bezier && _points.size() >3) {
-        return;
+    if(_pathType==Line) {
+        if (_points.size() == 2) {
+            _pickedPointIndex = pickedPointIndex(event->pos());
+             return;
+        }
+
+    } else if(_pathType ==Bezier) {
+        if (_points.size() == 4) {
+            _pickedPointIndex = pickedPointIndex(event->pos());
+             return;
+        }
     }
     _points.push_back(event->pos());
 }
 
+void AnimationFrame::mouseMoveEvent(QMouseEvent *event) {
+    QRect moveRegion = this->rect();
+    moveRegion.adjust(10, 10, -10, -10);
+    if (_pickedPointIndex != -1 && moveRegion.contains(event->pos())) {
+        _points[_pickedPointIndex] = event->pos();
+        update();
+    }
+    qDebug() << event;
+}
+
 void AnimationFrame::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (_pickedPointIndex != -1) {
+        _pickedPointIndex = -1;
+    }
     update();
 }
 
@@ -147,4 +151,19 @@ void AnimationFrame::paintEvent(QPaintEvent *event)
             painter.drawEllipse(point,5,5);
         }
     }
+}
+
+int AnimationFrame::pickedPointIndex(const QPoint &mousePoint)
+{
+    auto distance = [](QPoint p1, QPoint p2) {
+        return  sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.x() - p2.x(), 2));
+    };
+    int i = 0;
+    for (auto point : _points) {
+        if (distance(point, mousePoint) <= kPickedTolerance) {
+            return i;
+        }
+        i++;
+    }
+    return -1;
 }

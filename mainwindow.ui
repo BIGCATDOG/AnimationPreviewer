@@ -110,7 +110,7 @@
        </font>
       </property>
       <property name="text">
-       <string>EaseingType</string>
+       <string>EasingType</string>
       </property>
      </widget>
     </item>
