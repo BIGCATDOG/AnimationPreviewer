@@ -23,7 +23,7 @@ AnimationFrame::AnimationFrame(QWidget *parent)
     _motionObject = new QPushButton(this);
     _motionObject->setFixedSize(QSize(40, 40));
     connect(_motionObject,&QPushButton::clicked,[=](){
-        auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), "");
+        auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), tr("Images (*.png *.xpm *.jpg *.webp)"));
         if (!imagePath.isEmpty()) {
             _objectImage = imagePath;
             QPixmap pic(_objectImage);
