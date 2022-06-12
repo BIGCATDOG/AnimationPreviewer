@@ -3,7 +3,11 @@
 
 #include <QEasingCurve>
 #include <QFrame>
+#include <QString>
 #include <QVector2D>
+
+class QPushButton;
+
 class AnimationFrame : public QFrame
 {
     Q_OBJECT
@@ -36,6 +40,7 @@ public slots:
     void playAnimation();
     void onDurationChanged(double duration);
     void onEasingChanged(QEasingCurve::Type type);
+    void onObjectImageChanged(const QString& imagePath);
     void onPathTypeChanged(AnimationFrame::PathType pathType);
     void onResetPath();
 protected:
@@ -43,12 +48,16 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void paintEvent(QPaintEvent *event);
+    virtual void showEvent(QShowEvent *event);
 private:
+    void initialPath();
     int pickedPointIndex(const QPoint& mousePoint);
 private:
     double _duration = 1.0;
     PathType _pathType = PathType::Line;
     QEasingCurve::Type  _easingType = QEasingCurve::InOutCirc;
+    QPushButton* _motionObject;
+    QString _objectImage;
     int _pickedPointIndex = -1;
     QVector<QPoint> _points;
 };

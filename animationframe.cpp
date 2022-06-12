@@ -1,5 +1,6 @@
 #include "animationframe.h"
 
+#include <QFileDialog>
 #include <QImage>
 #include <QMouseEvent>
 #include <QPaintEvent>
@@ -8,38 +9,49 @@
 #include <QPropertyAnimation>
 #include <QPushButton>
 #include <QTimeLine>
+
 namespace  {
-const int kPickedTolerance = 8;
+const int kPickedTolerance = 10;
+const int kCircleRadius = 8;
+const Qt::GlobalColor colors[4] = {
+    Qt::darkGreen, Qt::magenta, Qt::darkCyan, Qt::darkYellow
+};
 }
 AnimationFrame::AnimationFrame(QWidget *parent)
     :QFrame(parent)
 {
+    _motionObject = new QPushButton(this);
+    _motionObject->setFixedSize(QSize(40, 40));
+    connect(_motionObject,&QPushButton::clicked,[=](){
+        auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), "");
+        if (!imagePath.isEmpty()) {
+            _objectImage = imagePath;
+            QPixmap pic(_objectImage);
+            pic = pic.scaled(_motionObject->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+            _motionObject->setMask(pic.mask());
+            _motionObject->setIcon(QIcon(_objectImage));
+            _motionObject->setIconSize(_motionObject->size());
+        }
+    });
+    _motionObject->show();
 }
 
 void AnimationFrame::playAnimation()
 {
     if (_pathType == Line && _points.size() > 1) {
-        auto btn = new QPushButton(this);
-        btn->show();
-        QPropertyAnimation *animation = new QPropertyAnimation(btn, "pos");
+
+        QPropertyAnimation *animation = new QPropertyAnimation(_motionObject, "pos");
         animation->setDuration(_duration * 1000);
         animation->setStartValue(_points[0]);
         animation->setEndValue(_points[1]);
         animation->setEasingCurve(_easingType);
         animation->start();
-        connect(animation,&QPropertyAnimation::finished,[=](){
-            btn->deleteLater();
-        });
     } else if(_pathType == Bezier && _points.size() > 3) {
-        auto btn = new QPushButton(this);
-        auto btnSize = btn->size();
-        auto center = btn->pos() - QPoint(btnSize.width()/2,btnSize.height()/2);
-        btn->move(center);
-        btn->show();
         QTimeLine* timeLine = new QTimeLine(_duration * 1000, this);
+        auto btnSize = _motionObject->size();
         timeLine->setEasingCurve(QEasingCurve(_easingType));
-        connect(timeLine,&QTimeLine::valueChanged,[=](qreal value){
-            qDebug()<<value;
+        connect(timeLine, &QTimeLine::valueChanged, [=](qreal value) {
+            qDebug()<< value;
             float currentTime = value;
             QPoint p0 = _points[0];
             QPoint p1 = _points[1];
@@ -50,11 +62,11 @@ void AnimationFrame::playAnimation()
                     3 * p1 * currentTime * pow(1 - currentTime, 2) +
                     3 * p2 * pow(currentTime, 2) * (1 - currentTime) +
                     p3 * pow(currentTime, 3);
-            auto s = QPoint(btnSize.width()/2,btnSize.height()/2);
-            btn->move(position);
+            auto s = QPoint(btnSize.width() / 2, btnSize.height() / 2);
+            _motionObject->move(position);
         });
-        connect(timeLine,&QTimeLine::finished,[=](){
-            btn->deleteLater();
+        connect(timeLine, &QTimeLine::finished, [=]() {
+            timeLine->deleteLater();
         });
         timeLine->start();
     }
@@ -68,6 +80,11 @@ void AnimationFrame::onDurationChanged(double duration)
 void AnimationFrame::onEasingChanged(QEasingCurve::Type type)
 {
     _easingType = type;
+}
+
+void AnimationFrame::onObjectImageChanged(const QString &imagePath)
+{
+    _objectImage = imagePath;
 }
 
 void AnimationFrame::onPathTypeChanged(PathType pathType)
@@ -85,16 +102,16 @@ void AnimationFrame::onResetPath()
 
 void AnimationFrame::mousePressEvent(QMouseEvent *event)
 {
-    if(_pathType==Line) {
+    if(_pathType == Line) {
         if (_points.size() == 2) {
             _pickedPointIndex = pickedPointIndex(event->pos());
-             return;
+            return;
         }
 
-    } else if(_pathType ==Bezier) {
+    } else if(_pathType == Bezier) {
         if (_points.size() == 4) {
             _pickedPointIndex = pickedPointIndex(event->pos());
-             return;
+            return;
         }
     }
     _points.push_back(event->pos());
@@ -126,31 +143,63 @@ void AnimationFrame::paintEvent(QPaintEvent *event)
     image.fill(Qt::white);
     QPen pen;
     pen.setCapStyle(Qt::SquareCap);
-    pen.setColor(Qt::blue);
+    pen.setColor(QColor(0xd722a7));
     pen.setWidth(3);
     painter.setPen(pen);
     painter.drawImage(QPoint(0, 0), image);
+    painter.save();
     if( _points.size() < 1) {
         return;
     }
-    if (_pathType == Line && _points.size() ==2) {
+    if (_pathType == Line && _points.size() == 2) {
+        QPen pen = painter.pen();
+        pen.setColor(colors[0]);
+        painter.setPen(pen);
+        painter.drawEllipse(_points[0], kCircleRadius, kCircleRadius);
+
+        painter.restore();
         painter.drawLine(_points[0],_points[1]);
-        painter.drawEllipse(_points[1],5 , 5);
-        painter.drawEllipse(_points[0],5 , 5);
-    } else if (_pathType == Bezier && _points.size()==4) {
+
+        pen.setColor(colors[3]);
+        painter.setPen(pen);
+        painter.drawEllipse(_points[1], kCircleRadius, kCircleRadius);
+
+    } else if (_pathType == Bezier && _points.size() == 4) {
         QPainterPath path;
         path.moveTo(_points[0]);
-        path.cubicTo(_points[1],_points[2],_points[3]);
-        path.addEllipse(_points[0],5,5);
-        path.addEllipse(_points[1],5,5);
-        path.addEllipse(_points[2],5,5);
-        path.addEllipse(_points[3],5,5);
+        path.cubicTo(_points[1], _points[2], _points[3]);
+        int i = 4;
+        QPen pen = painter.pen();
+        while (i--) {
+            pen.setColor(colors[i]);
+            painter.setPen(pen);
+            painter.drawEllipse(_points[i], kCircleRadius, kCircleRadius);
+        }
+        painter.restore();
         painter.drawPath(path);
     } else {
-        for(auto point : _points){
-            painter.drawEllipse(point,5,5);
+        QPen pen = painter.pen();
+        for(int i = 0; i < _points.size(); i++){
+            pen.setColor(colors[i]);
+            painter.setPen(pen);
+            painter.drawEllipse(_points[i], kCircleRadius, kCircleRadius);
         }
     }
+}
+
+void AnimationFrame::showEvent(QShowEvent *event)
+{
+    QFrame::showEvent(event);
+    initialPath();
+}
+
+void AnimationFrame::initialPath()
+{
+    _points.push_back(QPoint(50,50));
+    auto size = this->size();
+    auto p2 = QPoint(size.width() - 50, size.height() - 50);
+    _points.push_back(p2);
+    update();
 }
 
 int AnimationFrame::pickedPointIndex(const QPoint &mousePoint)
