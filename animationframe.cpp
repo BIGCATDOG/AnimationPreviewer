@@ -1,13 +1,18 @@
 #include "animationframe.h"
 
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QFileInfo>
 #include <QFileDialog>
 #include <QImage>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPropertyAnimation>
 #include <QPushButton>
+#include <QSizePolicy>
 #include <QTimeLine>
 
 namespace  {
@@ -16,6 +21,7 @@ const int kCircleRadius = 8;
 const Qt::GlobalColor colors[4] = {
     Qt::darkGreen, Qt::magenta, Qt::darkCyan, Qt::darkYellow
 };
+const QSize kDefaultSize = QSize(600, 800);
 }
 AnimationFrame::AnimationFrame(QWidget *parent)
     :QFrame(parent)
@@ -33,7 +39,22 @@ AnimationFrame::AnimationFrame(QWidget *parent)
             _motionObject->setIconSize(_motionObject->size());
         }
     });
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+   _frameSize = kDefaultSize;
+   setMaximumSize(_frameSize);
+   setMinimumSize(_frameSize);
+    setAcceptDrops(true);
     _motionObject->show();
+}
+
+QSize AnimationFrame::sizeHint() const
+{
+    return _frameSize;
+}
+
+QSize AnimationFrame::minimumSizeHint() const
+{
+    return QSize(600, 800);
 }
 
 void AnimationFrame::playAnimation()
@@ -100,6 +121,50 @@ void AnimationFrame::onResetPath()
     update();
 }
 
+void AnimationFrame::onWidthChanged(int w)
+{
+    _frameSize.setWidth(w);
+    setMaximumSize(_frameSize);
+    setMinimumSize(_frameSize);
+    updateGeometry();
+}
+
+void AnimationFrame::onHeightChanged(int h)
+{
+    _frameSize.setHeight(h);
+    setMaximumSize(_frameSize);
+    setMinimumSize(_frameSize);
+    updateGeometry();
+}
+
+void AnimationFrame::dragEnterEvent(QDragEnterEvent *event)
+{
+    auto mimeData = event->mimeData();
+    if (mimeData->hasUrls()) {
+        QUrl file = mimeData->urls()[0];
+        QString filePath = file.toLocalFile();
+        QFileInfo info(filePath);
+        if (info.suffix()!= "png" &&
+            info.suffix()!= "xpm" &&
+            info.suffix()!= "jpg" &&
+            info.suffix()!= "webp") {
+            event->ignore();
+        } else {
+            event->acceptProposedAction();
+        }
+    }
+}
+
+void AnimationFrame::dropEvent(QDropEvent *event)
+{
+    auto mimeData = event->mimeData();
+    if (mimeData->hasUrls()) {
+        QUrl file = mimeData->urls()[0];
+        _backgroundImage = file.toLocalFile();
+        update();
+    }
+}
+
 void AnimationFrame::mousePressEvent(QMouseEvent *event)
 {
     if(_pathType == Line) {
@@ -139,8 +204,14 @@ void AnimationFrame::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    QImage image(this->size(), QImage::Format_ARGB32);
-    image.fill(Qt::white);
+    QImage image;
+    if (_backgroundImage.isEmpty()) {
+        image = QImage(this->size(), QImage::Format_ARGB32);
+        image.fill(Qt::white);
+    } else {
+        image.load(_backgroundImage);
+        image = image.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
     QPen pen;
     pen.setCapStyle(Qt::SquareCap);
     pen.setColor(QColor(0xd722a7));

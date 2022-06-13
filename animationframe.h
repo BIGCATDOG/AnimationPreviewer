@@ -36,6 +36,8 @@ public:
     };
 public:
     AnimationFrame(QWidget* parent);
+    QSize sizeHint() const;
+    QSize minimumSizeHint() const;
 public slots:
     void playAnimation();
     void onDurationChanged(double duration);
@@ -43,7 +45,11 @@ public slots:
     void onObjectImageChanged(const QString& imagePath);
     void onPathTypeChanged(AnimationFrame::PathType pathType);
     void onResetPath();
+    void onWidthChanged(int w);
+    void onHeightChanged(int h);
 protected:
+    virtual void dragEnterEvent(QDragEnterEvent *event);
+    virtual void dropEvent(QDropEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
@@ -53,13 +59,15 @@ private:
     void initialPath();
     int pickedPointIndex(const QPoint& mousePoint);
 private:
-    double _duration = 1.0;
-    PathType _pathType = PathType::Line;
+    double              _duration = 1.0;
+    PathType            _pathType = PathType::Line;
     QEasingCurve::Type  _easingType = QEasingCurve::InOutCirc;
-    QPushButton* _motionObject;
-    QString _objectImage;
-    int _pickedPointIndex = -1;
-    QVector<QPoint> _points;
+    QPushButton*        _motionObject;
+    QString             _objectImage;
+    QString             _backgroundImage;
+    QSize               _frameSize;
+    int                 _pickedPointIndex = -1;
+    QVector<QPoint>     _points;
 };
 
 #endif // ANIMATIONFRAME_H

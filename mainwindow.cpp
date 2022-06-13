@@ -60,3 +60,15 @@ void MainWindow::on_pushButton_2_clicked()
     ui->frame->onResetPath();
 }
 
+
+void MainWindow::on_spinBox_width_valueChanged(int arg1)
+{
+    ui->frame->onWidthChanged(arg1);
+}
+
+
+void MainWindow::on_spinBox_height_valueChanged(int arg1)
+{
+    ui->frame->onHeightChanged(arg1);
+}
+
