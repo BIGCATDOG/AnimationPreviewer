@@ -29,8 +29,14 @@ private slots:
 
     void on_spinBox_height_valueChanged(int arg1);
 
+    void on_easingCurvePicker_currentRowChanged(int currentRow);
+
+private:
+     void createCurveIcons();
+
 private:
     Ui::MainWindow *ui;
+    QSize           _iconSize;
 
 };
 #endif // MAINWINDOW_H
