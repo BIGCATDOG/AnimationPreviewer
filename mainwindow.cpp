@@ -19,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->comboBox_pathType->addItem("Bezier");
     createCurveIcons();
     ui->easingCurvePicker->setCurrentRow(0);
-    auto re = qGuiApp->devicePixelRatio();
 }
 
 MainWindow::~MainWindow()
