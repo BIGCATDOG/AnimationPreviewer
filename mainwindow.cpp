@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QDir>
 #include <QEasingCurve>
+#include <QFileDialog>
+#include <QGuiApplication>
 #include <QMetaEnum>
 #include <QPainter>
 #include <QPainterPath>
@@ -16,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->comboBox_pathType->addItem("Bezier");
     createCurveIcons();
     ui->easingCurvePicker->setCurrentRow(0);
+    auto re = qGuiApp->devicePixelRatio();
 }
 
 MainWindow::~MainWindow()
@@ -136,5 +140,61 @@ void MainWindow::createCurveIcons()
 void MainWindow::on_easingCurvePicker_currentRowChanged(int currentRow)
 {
     ui->frame->onEasingChanged((QEasingCurve::Type)currentRow);
+}
+
+
+void MainWindow::on_checkBox_stateChanged(int arg1)
+{
+    ui->frame->onComparisonModeChanged(arg1 < 1 ? false : true);
+}
+
+
+void MainWindow::on_radioButton_toggled(bool checked)
+{
+    if (checked) {
+        auto easingType = ui->frame->getEasingTypeByIndex(0);
+        ui->frame->onMotionObjectSelected(0);
+        ui->easingCurvePicker->setCurrentRow(int(easingType));
+    }
+}
+
+
+void MainWindow::on_radioButton_2_toggled(bool checked)
+{
+    if (checked) {
+        auto easingType = ui->frame->getEasingTypeByIndex(1);
+        ui->frame->onMotionObjectSelected(1);
+        ui->easingCurvePicker->setCurrentRow(int(easingType));
+    }
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    ui->pushButton_3->setFixedSize(QSize(40, 40));
+    auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), tr("Images (*.png *.xpm *.jpg *.webp)"));
+    if (!imagePath.isEmpty()) {
+        QPixmap pic(imagePath);
+        pic = pic.scaled(ui->pushButton_3->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        ui->pushButton_3->setMask(pic.mask());
+        ui->pushButton_3->setIcon(QIcon(imagePath));
+        ui->pushButton_3->setIconSize(ui->pushButton_3->size());
+        ui->frame->onMotionObjectSurfaceChange(0, imagePath);
+    }
+}
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    ui->pushButton_4->setFixedSize(QSize(40, 40));
+    auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), tr("Images (*.png *.xpm *.jpg *.webp)"));
+    if (!imagePath.isEmpty()) {
+        QPixmap pic(imagePath);
+        pic = pic.scaled(ui->pushButton_4->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        ui->pushButton_4->setMask(pic.mask());
+        ui->pushButton_4->setIcon(QIcon(imagePath));
+        ui->pushButton_4->setIconSize(ui->pushButton_4->size());
+        ui->frame->onMotionObjectSurfaceChange(1, imagePath);
+    }
 }
 

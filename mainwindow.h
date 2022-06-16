@@ -31,6 +31,16 @@ private slots:
 
     void on_easingCurvePicker_currentRowChanged(int currentRow);
 
+    void on_checkBox_stateChanged(int arg1);
+
+    void on_radioButton_toggled(bool checked);
+
+    void on_radioButton_2_toggled(bool checked);
+
+    void on_pushButton_3_clicked();
+
+    void on_pushButton_4_clicked();
+
 private:
      void createCurveIcons();
 

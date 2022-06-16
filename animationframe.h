@@ -38,10 +38,14 @@ public:
     AnimationFrame(QWidget* parent);
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
+    QEasingCurve::Type getEasingTypeByIndex(int index);
 public slots:
     void playAnimation();
+    void onComparisonModeChanged(bool comparsionMode);
     void onDurationChanged(double duration);
     void onEasingChanged(QEasingCurve::Type type);
+    void onMotionObjectSelected(int index);
+    void onMotionObjectSurfaceChange(int index, const QString& imgPath);
     void onObjectImageChanged(const QString& imagePath);
     void onPathTypeChanged(AnimationFrame::PathType pathType);
     void onResetPath();
@@ -58,15 +62,19 @@ protected:
 private:
     void initialPath();
     int pickedPointIndex(const QPoint& mousePoint);
+    void updateMotionObjectSurface(QPushButton* btn, const QString& imagePath);
 private:
+    bool                _comparisonMode = false;
     double              _duration = 1.0;
     PathType            _pathType = PathType::Line;
-    QEasingCurve::Type  _easingType = QEasingCurve::InOutCirc;
+    QEasingCurve::Type  _easingTypeObj1 = QEasingCurve::InOutCirc;
+    QEasingCurve::Type  _easingTypeObj2 = QEasingCurve::InOutCirc;
     QPushButton*        _motionObject;
     QString             _objectImage;
     QString             _backgroundImage;
     QSize               _frameSize;
     int                 _pickedPointIndex = -1;
+    int                 _selectedObjectIndex = 0;
     QVector<QPoint>     _points;
 };
 

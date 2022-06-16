@@ -22,29 +22,18 @@ const Qt::GlobalColor colors[4] = {
     Qt::darkGreen, Qt::magenta, Qt::darkCyan, Qt::darkYellow
 };
 const QSize kDefaultSize = QSize(600, 800);
+QEasingCurve::Type kObjecsEasingType[2] = {QEasingCurve::Linear, QEasingCurve::Linear};
+QString kMotionObjectImagePath[2] = {};
 }
 AnimationFrame::AnimationFrame(QWidget *parent)
     :QFrame(parent)
 {
-    _motionObject = new QPushButton(this);
-    _motionObject->setFixedSize(QSize(40, 40));
-    connect(_motionObject,&QPushButton::clicked,[=](){
-        auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), tr("Images (*.png *.xpm *.jpg *.webp)"));
-        if (!imagePath.isEmpty()) {
-            _objectImage = imagePath;
-            QPixmap pic(_objectImage);
-            pic = pic.scaled(_motionObject->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-            _motionObject->setMask(pic.mask());
-            _motionObject->setIcon(QIcon(_objectImage));
-            _motionObject->setIconSize(_motionObject->size());
-        }
-    });
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    _frameSize = kDefaultSize;
    setMaximumSize(_frameSize);
    setMinimumSize(_frameSize);
-    setAcceptDrops(true);
-    _motionObject->show();
+   setAcceptDrops(true);
+
 }
 
 QSize AnimationFrame::sizeHint() const
@@ -57,22 +46,54 @@ QSize AnimationFrame::minimumSizeHint() const
     return QSize(600, 800);
 }
 
+QEasingCurve::Type AnimationFrame::getEasingTypeByIndex(int index)
+{
+    return kObjecsEasingType[index];
+}
+
 void AnimationFrame::playAnimation()
 {
     if (_pathType == Line && _points.size() > 1) {
-
-        QPropertyAnimation *animation = new QPropertyAnimation(_motionObject, "pos");
+        auto object = new QPushButton(this);
+        updateMotionObjectSurface(object, kMotionObjectImagePath[0]);
+        object->show();
+        QPropertyAnimation *animation = new QPropertyAnimation(object, "pos");
         animation->setDuration(_duration * 1000);
         animation->setStartValue(_points[0]);
         animation->setEndValue(_points[1]);
-        animation->setEasingCurve(_easingType);
+        animation->setEasingCurve(kObjecsEasingType[0]);
         animation->start();
+        connect(animation, &QPropertyAnimation::finished,[=]() {
+            object->deleteLater();
+        });
+        if (_comparisonMode) {
+            auto object = new QPushButton(this);
+            QPropertyAnimation *animation = new QPropertyAnimation(object, "pos");
+            if (kMotionObjectImagePath[1].isEmpty()) {
+                object->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));");
+            } else {
+                updateMotionObjectSurface(object, kMotionObjectImagePath[1]);
+            }
+            object->show();
+            animation->setDuration(_duration * 1000);
+            animation->setStartValue(_points[0]);
+            animation->setEndValue(_points[1]);
+            animation->setEasingCurve(kObjecsEasingType[1]);
+            animation->start();
+            connect(animation, &QPropertyAnimation::finished,[=]() {
+                object->deleteLater();
+            });
+        }
+
+
     } else if(_pathType == Bezier && _points.size() > 3) {
         QTimeLine* timeLine = new QTimeLine(_duration * 1000, this);
-        auto btnSize = _motionObject->size();
-        timeLine->setEasingCurve(QEasingCurve(_easingType));
+        auto object = new QPushButton(this);
+        updateMotionObjectSurface(object, kMotionObjectImagePath[0]);
+        object->show();
+        timeLine->setEasingCurve(QEasingCurve(kObjecsEasingType[0]));
         connect(timeLine, &QTimeLine::valueChanged, [=](qreal value) {
-            qDebug()<< value;
+            qDebug()<<"obj1 :" << value;
             float currentTime = value;
             QPoint p0 = _points[0];
             QPoint p1 = _points[1];
@@ -83,14 +104,51 @@ void AnimationFrame::playAnimation()
                     3 * p1 * currentTime * pow(1 - currentTime, 2) +
                     3 * p2 * pow(currentTime, 2) * (1 - currentTime) +
                     p3 * pow(currentTime, 3);
-            auto s = QPoint(btnSize.width() / 2, btnSize.height() / 2);
-            _motionObject->move(position);
+            object->move(position);
         });
         connect(timeLine, &QTimeLine::finished, [=]() {
             timeLine->deleteLater();
+            object->deleteLater();
         });
         timeLine->start();
+
+        if (_comparisonMode) {
+            auto object = new QPushButton(this);
+            if (kMotionObjectImagePath[1].isEmpty()) {
+                object->setFixedSize(QSize(40, 40));
+                object->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));");
+            } else {
+                updateMotionObjectSurface(object, kMotionObjectImagePath[1]);
+            }
+            object->show();
+            QTimeLine* timeLine = new QTimeLine(_duration * 1000, this);
+            timeLine->setEasingCurve(QEasingCurve(kObjecsEasingType[1]));
+            connect(timeLine, &QTimeLine::valueChanged, [=](qreal value) {
+                qDebug()<<"obj2 :" << value;
+                float currentTime = value;
+                QPoint p0 = _points[0];
+                QPoint p1 = _points[1];
+                QPoint p2 = _points[2];
+                QPoint p3 = _points[3];
+
+                QPoint position = p0 * pow(1 - currentTime, 3) +
+                        3 * p1 * currentTime * pow(1 - currentTime, 2) +
+                        3 * p2 * pow(currentTime, 2) * (1 - currentTime) +
+                        p3 * pow(currentTime, 3);
+                object->move(position);
+            });
+            connect(timeLine, &QTimeLine::finished, [=]() {
+                timeLine->deleteLater();
+                object->deleteLater();
+            });
+            timeLine->start();
+        }
     }
+}
+
+void AnimationFrame::onComparisonModeChanged(bool comparsionMode)
+{
+    _comparisonMode = comparsionMode;
 }
 
 void AnimationFrame::onDurationChanged(double duration)
@@ -100,7 +158,17 @@ void AnimationFrame::onDurationChanged(double duration)
 
 void AnimationFrame::onEasingChanged(QEasingCurve::Type type)
 {
-    _easingType = type;
+    kObjecsEasingType[_selectedObjectIndex] = type;
+}
+
+void AnimationFrame::onMotionObjectSelected(int index)
+{
+    _selectedObjectIndex = index;
+}
+
+void AnimationFrame::onMotionObjectSurfaceChange(int index, const QString &imgPath)
+{
+    kMotionObjectImagePath[index] = imgPath;
 }
 
 void AnimationFrame::onObjectImageChanged(const QString &imagePath)
@@ -124,17 +192,11 @@ void AnimationFrame::onResetPath()
 void AnimationFrame::onWidthChanged(int w)
 {
     _frameSize.setWidth(w);
-    setMaximumSize(_frameSize);
-    setMinimumSize(_frameSize);
-    updateGeometry();
 }
 
 void AnimationFrame::onHeightChanged(int h)
 {
     _frameSize.setHeight(h);
-    setMaximumSize(_frameSize);
-    setMinimumSize(_frameSize);
-    updateGeometry();
 }
 
 void AnimationFrame::dragEnterEvent(QDragEnterEvent *event)
@@ -286,4 +348,17 @@ int AnimationFrame::pickedPointIndex(const QPoint &mousePoint)
         i++;
     }
     return -1;
+}
+
+void AnimationFrame::updateMotionObjectSurface(QPushButton *btn, const QString &imagePath)
+{
+    if (imagePath.isEmpty()) {
+        return;
+    }
+    QPixmap pic(imagePath);
+    btn->setFixedSize(QSize(40, 40));
+    pic = pic.scaled(btn->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    btn->setMask(pic.mask());
+    btn->setIcon(QIcon(imagePath));
+    btn->setIconSize(btn->size());
 }
