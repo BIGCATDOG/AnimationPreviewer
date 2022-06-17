@@ -19,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->comboBox_pathType->addItem("Bezier");
     createCurveIcons();
     ui->easingCurvePicker->setCurrentRow(0);
+    ui->pushButton_3->setFixedSize(QSize(40, 40));
+    ui->pushButton_4->setFixedSize(QSize(40, 40));
 }
 
 MainWindow::~MainWindow()
@@ -170,7 +172,6 @@ void MainWindow::on_radioButton_2_toggled(bool checked)
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    ui->pushButton_3->setFixedSize(QSize(40, 40));
     auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), tr("Images (*.png *.xpm *.jpg *.webp)"));
     if (!imagePath.isEmpty()) {
         QPixmap pic(imagePath);
@@ -185,7 +186,6 @@ void MainWindow::on_pushButton_3_clicked()
 
 void MainWindow::on_pushButton_4_clicked()
 {
-    ui->pushButton_4->setFixedSize(QSize(40, 40));
     auto imagePath = QFileDialog::getOpenFileName(Q_NULLPTR, "Pick a Image", QDir::homePath(), tr("Images (*.png *.xpm *.jpg *.webp)"));
     if (!imagePath.isEmpty()) {
         QPixmap pic(imagePath);

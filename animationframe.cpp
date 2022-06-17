@@ -56,6 +56,7 @@ void AnimationFrame::playAnimation()
     if (_pathType == Line && _points.size() > 1) {
         auto object = new QPushButton(this);
         updateMotionObjectSurface(object, kMotionObjectImagePath[0]);
+        object->setFixedSize(QSize(40, 40));
         object->show();
         QPropertyAnimation *animation = new QPropertyAnimation(object, "pos");
         animation->setDuration(_duration * 1000);
@@ -68,6 +69,7 @@ void AnimationFrame::playAnimation()
         });
         if (_comparisonMode) {
             auto object = new QPushButton(this);
+            object->setFixedSize(QSize(40, 40));
             QPropertyAnimation *animation = new QPropertyAnimation(object, "pos");
             if (kMotionObjectImagePath[1].isEmpty()) {
                 object->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));");
@@ -89,6 +91,7 @@ void AnimationFrame::playAnimation()
     } else if(_pathType == Bezier && _points.size() > 3) {
         QTimeLine* timeLine = new QTimeLine(_duration * 1000, this);
         auto object = new QPushButton(this);
+        object->setFixedSize(QSize(40, 40));
         updateMotionObjectSurface(object, kMotionObjectImagePath[0]);
         object->show();
         timeLine->setEasingCurve(QEasingCurve(kObjecsEasingType[0]));
@@ -114,8 +117,8 @@ void AnimationFrame::playAnimation()
 
         if (_comparisonMode) {
             auto object = new QPushButton(this);
+            object->setFixedSize(QSize(40, 40));
             if (kMotionObjectImagePath[1].isEmpty()) {
-                object->setFixedSize(QSize(40, 40));
                 object->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));");
             } else {
                 updateMotionObjectSurface(object, kMotionObjectImagePath[1]);

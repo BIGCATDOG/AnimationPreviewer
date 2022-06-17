@@ -85,7 +85,7 @@
              <property name="maximumSize">
               <size>
                <width>65</width>
-               <height>16777215</height>
+               <height>40</height>
               </size>
              </property>
              <property name="text">
@@ -110,7 +110,7 @@
              <property name="maximumSize">
               <size>
                <width>65</width>
-               <height>16777215</height>
+               <height>40</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -157,7 +157,6 @@
          <font>
           <family>Consolas</family>
           <pointsize>14</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -187,7 +186,6 @@
                 <font>
                  <family>Consolas</family>
                  <pointsize>14</pointsize>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -217,7 +215,6 @@
                 <font>
                  <family>Consolas</family>
                  <pointsize>14</pointsize>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -247,7 +244,6 @@
                 <font>
                  <family>Consolas</family>
                  <pointsize>14</pointsize>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -322,7 +318,6 @@
                 <font>
                  <family>Consolas</family>
                  <pointsize>14</pointsize>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -390,7 +385,6 @@
        <font>
         <family>Consolas</family>
         <pointsize>14</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -498,7 +492,7 @@
      <x>0</x>
      <y>0</y>
      <width>1164</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>
