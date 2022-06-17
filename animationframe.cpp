@@ -212,6 +212,7 @@ void AnimationFrame::dragEnterEvent(QDragEnterEvent *event)
         if (info.suffix()!= "png" &&
             info.suffix()!= "xpm" &&
             info.suffix()!= "jpg" &&
+            info.suffix()!= "jpeg" &&
             info.suffix()!= "webp") {
             event->ignore();
         } else {
