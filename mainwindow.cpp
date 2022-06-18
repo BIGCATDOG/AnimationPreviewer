@@ -15,8 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->easingCurvePicker->setIconSize(_iconSize);
     ui->easingCurvePicker->setMinimumHeight(_iconSize.height() + 50);
-    ui->comboBox_pathType->addItem("Line");
-    ui->comboBox_pathType->addItem("Bezier");
+    ui->comboBox_pathType->addItem(tr("Line"));
+    ui->comboBox_pathType->addItem(tr("Bezier"));
     createCurveIcons();
     ui->easingCurvePicker->setCurrentRow(0);
     ui->pushButton_3->setFixedSize(QSize(40, 40));
